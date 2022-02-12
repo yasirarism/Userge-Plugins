@@ -77,7 +77,7 @@ async def get_movie_description(imdb_id):
     duration = soup.get("duration")
     mov_rating = soup.get("UserRating").get("rating")
     if mov_rating.strip() == '/':
-        mov_rating = "`Ratings not found!`"
+        mov_rating = "<code>Ratings not found!</code>"
     else:
         users = soup.get("UserRating").get("numeric_description_only")
         if users:
@@ -175,7 +175,7 @@ if userge.has_bot:
 
     @userge.bot.on_callback_query(filters=filters.regex(pattern=r"imdb\((.+)\)"))
     async def imdb_callback(_, c_q: CallbackQuery):
-        if c_q.from_user.id == Config.OWNER_ID[0]:
+        if c_q.from_user and c_q.from_user.id in Config.OWNER_ID:
             imdb_id = str(c_q.matches[0].group(1))
             _, description = await get_movie_description(imdb_id)
             await c_q.edit_message_text(
@@ -200,6 +200,8 @@ if userge.has_bot:
             lambda _, __, inline_query: (
                 inline_query.query
                 and inline_query.query.startswith("imdb ")
+                and inline_query.from_user
+                and inline_query.from_user.id in Config.OWNER_ID
             ),
             # https://t.me/UserGeSpam/359404
             name="ImdbInlineFilter"
