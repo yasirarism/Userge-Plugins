@@ -22,8 +22,8 @@ async def usage(message: Message):
         'Authorization': f'Bearer {Config.HEROKU_API_KEY}',
         'Accept': 'application/vnd.heroku+json; version=3.account-quotas',
     }
-    path = "/accounts/" + u_id + "/actions/get-quota"
-    r = requests.get("https://api.heroku.com" + path, headers=headers)
+    path = f"/accounts/{u_id}/actions/get-quota"
+    r = requests.get(f"https://api.heroku.com{path}", headers=headers)
     if r.status_code != 200:
         return await message.edit("`Error: something bad happened`\n\n"
                                   f">.`{r.reason}`\n")

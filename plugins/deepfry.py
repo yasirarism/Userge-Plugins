@@ -186,9 +186,7 @@ async def fry_(message: Message):
         media = await userge.send_photo(chat, frying_file)
         await conv.get_response(mark_read=True)
         await userge.send_message(
-            chat,
-            "/deepfry {}".format(args),
-            reply_to_message_id=media.message_id,
+            chat, f"/deepfry {args}", reply_to_message_id=media.message_id
         )
         response = await conv.get_response(mark_read=True)
         if not response.photo:

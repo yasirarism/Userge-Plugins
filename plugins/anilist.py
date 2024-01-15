@@ -188,8 +188,7 @@ async def return_json_senpai(query, vars_):
     url_ = "https://graphql.anilist.co"
     async with ClientSession() as api_:
         post_con = await api_.post(url_, json={'query': query, 'variables': vars_})
-        json_data = await post_con.json()
-        return json_data
+        return await post_con.json()
 
 
 def post_to_tp(a_title, content):
@@ -250,8 +249,7 @@ async def anim_arch(message: Message):
             }
 
     result = await return_json_senpai(ANIME_QUERY, vars_)
-    error = result.get('errors')
-    if error:
+    if error := result.get('errors'):
         await CLOG.log(f"**ANILIST RETURNED FOLLOWING ERROR:**\n\n`{error}`")
         error_sts = error[0].get('message')
         await message.err(f"[{error_sts}]")
@@ -278,9 +276,7 @@ async def anim_arch(message: Message):
     coverImg = data.get('coverImage')['extraLarge']
     bannerImg = data.get('bannerImage')
     genres = data.get('genres')
-    genre = genres[0]
-    if len(genres) != 1:
-        genre = ", ".join(genres)
+    genre = ", ".join(genres) if len(genres) != 1 else genres[0]
     score = data.get('averageScore')
     air_on = None
     if data['nextAiringEpisode']:
@@ -294,8 +290,7 @@ async def anim_arch(message: Message):
         trailer_link = f"[Trailer](https://youtu.be/{data['trailer']['id']})"
     html_char = ""
     for character in data['characters']['nodes']:
-        html_ = ""
-        html_ += "<br>"
+        html_ = "" + "<br>"
         html_ += f"""<a href="{character['siteUrl']}">"""
         html_ += f"""<img src="{character['image']['large']}"/></a>"""
         html_ += "<br>"
@@ -305,9 +300,10 @@ async def anim_arch(message: Message):
         html_ += f"<h4>About Character and Role:</h4>{character.get('description', 'N/A')}"
         html_char += f"{html_}<br><br>"
 
-    studios = ""
-    for studio in data['studios']['nodes']:
-        studios += "<a href='{}'>• {}</a> ".format(studio['siteUrl'], studio['name'])
+    studios = "".join(
+        f"<a href='{studio['siteUrl']}'>• {studio['name']}</a> "
+        for studio in data['studios']['nodes']
+    )
     url = data.get('siteUrl')
 
     title_img = coverImg or bannerImg
@@ -368,8 +364,7 @@ async def airing_anim(message: Message):
             'type': "ANIME"
         }
     result = await return_json_senpai(ANIME_QUERY, vars_)
-    error = result.get('errors')
-    if error:
+    if error := result.get('errors'):
         await CLOG.log(f"**ANILIST RETURNED FOLLOWING ERROR:**\n\n`{error}`")
         error_sts = error[0].get('message')
         await message.err(f"[{error_sts}]")
@@ -389,9 +384,7 @@ async def airing_anim(message: Message):
     source = data.get('source')
     coverImg = data.get('coverImage')['extraLarge']
     genres = data.get('genres')
-    genre = genres[0]
-    if len(genres) != 1:
-        genre = ", ".join(genres)
+    genre = ", ".join(genres) if len(genres) != 1 else genres[0]
     score = data.get('averageScore')
     air_on = None
     if data['nextAiringEpisode']:
@@ -429,8 +422,7 @@ async def get_schuled(message: Message):
     var = {'notYetAired': True}
     await message.edit("`Fetching Scheduled Animes`")
     result = await return_json_senpai(AIRING_QUERY, var)
-    error = result.get('errors')
-    if error:
+    if error := result.get('errors'):
         await CLOG.log(f"**ANILIST RETURNED FOLLOWING ERROR:**\n\n{error}")
         error_sts = error[0].get('message')
         await message.err(f"[{error_sts}]")
@@ -438,7 +430,6 @@ async def get_schuled(message: Message):
 
     data = result['data']['Page']['airingSchedules']
     c = 0
-    totl_schld = len(data)
     out = ""
     for air in data:
         romaji = air['media']['title']['romaji']
@@ -455,6 +446,7 @@ async def get_schuled(message: Message):
         out += f" • <a href='{site}'>[Visit on anilist.co]</a><br><br>"
         c += 1
     if out:
+        totl_schld = len(data)
         out_p = f"<h1>Showing [{c}/{totl_schld}] Scheduled Animes:</h1><br><br>{out}"
         link = post_to_tp("Scheduled Animes", out_p)
         await message.edit(f"[Open in Telegraph]({link})")
@@ -476,8 +468,7 @@ async def character_search(message: Message):
         'asHtml': True
     }
     result = await return_json_senpai(CHARACTER_QUERY, var)
-    error = result.get('errors')
-    if error:
+    if error := result.get('errors'):
         await CLOG.log(f"**ANILIST RETURNED FOLLOWING ERROR:**\n\n`{error}`")
         error_sts = error[0].get('message')
         await message.err(f"[{error_sts}]")

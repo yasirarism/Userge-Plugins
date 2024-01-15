@@ -27,11 +27,9 @@ async def labstack(message: Message):
     if not os.path.isdir(Config.DOWN_PATH):
         os.mkdir(Config.DOWN_PATH)
 
-    path_ = message.filtered_input_str
     dl_loc = ""
-    if path_:
-        is_url = re.search(r"(?:https?|ftp)://[^|\s]+\.[^|\s]+", path_)
-        if is_url:
+    if path_ := message.filtered_input_str:
+        if is_url := re.search(r"(?:https?|ftp)://[^|\s]+\.[^|\s]+", path_):
             await message.edit("`Downloading From URL...`")
             if not os.path.isdir(Config.DOWN_PATH):
                 os.mkdir(Config.DOWN_PATH)
@@ -66,17 +64,22 @@ async def labstack(message: Message):
                         "**ETA** : `{}`"
                     progress_str = progress_str.format(
                         "Downloading",
-                        ''.join((Config.FINISHED_PROGRESS_STR
-                                 for i in range(math.floor(percentage / 5)))),
-                        ''.join((Config.UNFINISHED_PROGRESS_STR
-                                 for i in range(20 - math.floor(percentage / 5)))),
+                        ''.join(
+                            Config.FINISHED_PROGRESS_STR
+                            for _ in range(math.floor(percentage / 5))
+                        ),
+                        ''.join(
+                            Config.UNFINISHED_PROGRESS_STR
+                            for _ in range(20 - math.floor(percentage / 5))
+                        ),
                         round(percentage, 2),
                         url,
                         file_name,
                         humanbytes(downloaded),
                         humanbytes(total_length),
                         speed,
-                        estimated_total_time)
+                        estimated_total_time,
+                    )
                     count += 1
                     if count >= 5:
                         count = 0
@@ -124,12 +127,10 @@ async def labstack(message: Message):
     files = {
         'files': (filename, open(dl_loc, 'rb')),
     }
-    send_url = "https://up.labstack.com/api/v1/links/{}/send".format(
-        r['code'])
+    send_url = f"https://up.labstack.com/api/v1/links/{r['code']}/send"
     response = requests.post(send_url, files=files, **kwargs)
     if (response.status_code) == 200:
-        link = (
-            "https://up.labstack.com/api/v1/links/{}/receive".format(r['code']))
+        link = f"https://up.labstack.com/api/v1/links/{r['code']}/receive"
         await message.edit(f"**Filename**: `{filename}`\n**Size**: "
                            f"`{humanbytes(filesize)}`\n\n"
                            f"**Link**: {link}\n`Expires in 7 Days`")

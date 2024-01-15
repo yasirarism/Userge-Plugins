@@ -78,10 +78,10 @@ async def _lastfm(msg: Message):
             NOW_PLAYING[1] = track.get_name()
 
         out = f"{USERNAME} __is currently Listening to:__\n\n"
-        k = get_track_info(track)
-        if not k:
+        if k := get_track_info(track):
+            await msg.edit(out + k, disable_web_page_preview=True)
+        else:
             return await msg.err("Track Not found...")
-        await msg.edit(out + k, disable_web_page_preview=True)
 
 
 @check_creds
@@ -176,10 +176,10 @@ async def get_track(msg: Message):
     track = await LastFm(msg).get_track()
     if not track:
         return await msg.edit("Please see `.help getrack`")
-    out = get_track_info(track)
-    if not out:
+    if out := get_track_info(track):
+        await msg.edit(out, disable_web_page_preview=True)
+    else:
         return await msg.err("Track not found...")
-    await msg.edit(out, disable_web_page_preview=True)
 
 
 @check_creds
@@ -240,9 +240,7 @@ async def lastfm_worker():
 
 def _check_creds() -> bool:
     """ check creds """
-    if API_KEY and API_SECRET and USERNAME and PASSWORD:
-        return True
-    return False
+    return bool(API_KEY and API_SECRET and USERNAME and PASSWORD)
 
 
 def get_track_info(track: pylast.Track) -> Optional[str]:
@@ -295,8 +293,7 @@ class LastFm:
 
     async def now_playing(self, username: str = USERNAME) -> Optional[pylast.Track]:
         user = self.get_user(username)
-        playing = await _get_now_playing(user)
-        return playing
+        return await _get_now_playing(user)
 
     async def love(self) -> None:
         track = await self.get_track()
@@ -330,10 +327,10 @@ class LastFm:
         if self.msg.input_str and self.msg.input_str.is_numeric():
             limit = int(self.msg.input_str)
         tracks = (self.get_user()).get_loved_tracks(limit=limit)
-        out = ""
-        for i, track in enumerate(tracks, start=1):
-            out += f"`{i}.` `{str(track[0])}` 💕\n"
-        if out:
+        if out := "".join(
+            f"`{i}.` `{str(track[0])}` 💕\n"
+            for i, track in enumerate(tracks, start=1)
+        ):
             return await self.msg.edit(out)
         await self.msg.err("No loved tracks found.")
 
@@ -345,9 +342,7 @@ class LastFm:
             track = pylast.Track(artist, title, self._network())
         else:
             track = await self.now_playing()
-        if not track:
-            return None
-        return track
+        return None if not track else track
 
     def _get_tracks(self, user: pylast.User, limit: int) -> Optional[str]:
         recent_tracks = user.get_recent_tracks(limit=limit)
@@ -358,9 +353,7 @@ class LastFm:
             out += f"\n{i}. {track}"
             if track.get_userloved():
                 out += " 💕"
-        if not out:
-            return None
-        return out
+        return None if not out else out
 
     async def get_last_played(self) -> None:
         await self.msg.edit("`getting tracks...`")

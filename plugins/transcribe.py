@@ -24,7 +24,7 @@ class WitAiAPI:
     def __init__(self, lang):
         self.api_keys = {}
         for i in filter(lambda x: x.startswith('WIT_AI_API_'), os.environ):
-            self.api_keys.update({i.split('WIT_AI_API_')[1].lower(): os.environ.get(i)})
+            self.api_keys[i.split('WIT_AI_API_')[1].lower()] = os.environ.get(i)
         self.api_url = "https://api.wit.ai"
         self.lang = lang
         self.chunks = None
@@ -109,7 +109,7 @@ class WitAiAPI:
     'examples': ['{tr}stt en link', '{tr}stt ar -t link']}, check_downpath=True)
 async def stt_(message: Message):
     """ Speech to text using Wit.ai """
-    send_text = bool('v' in message.flags)
+    send_text = 'v' in message.flags
     replied = message.reply_to_message
     message_id = replied.message_id if replied else message.message_id
     regex = re.compile(r'([\S]*)(?: |)([\s\S]*)')
@@ -147,9 +147,9 @@ async def stt_(message: Message):
             return
     else:
         input_str = match.group(2) if match.group(2) else ""
-        is_url = re.search(
-            r"(?:https?|ftp)://[^|\s]+\.[^|\s]+", input_str)
-        if is_url:
+        if is_url := re.search(
+            r"(?:https?|ftp)://[^|\s]+\.[^|\s]+", input_str
+        ):
             try:
                 dl_loc, _ = await url_download(message, message.filtered_input_str)
                 file_name = os.path.basename(dl_loc)

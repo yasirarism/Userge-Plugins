@@ -4,6 +4,7 @@ Chat info, Join and leave chat, tagall and tag admins
 by @Krishna_Singhal
 """
 
+
 import html
 import os
 import asyncio
@@ -19,11 +20,11 @@ from userge import userge, Config, Message
 
 LOG = userge.getLogger(__name__)
 
-PATH = Config.DOWN_PATH + "chat_pic.jpg"
+PATH = f"{Config.DOWN_PATH}chat_pic.jpg"
 
 
 def mention_html(user_id, name):
-    return u'<a href="tg://user?id={}">{}</a>'.format(user_id, html.escape(name))
+    return f'<a href="tg://user?id={user_id}">{html.escape(name)}</a>'
 
 
 @userge.on_cmd("join", about={
@@ -32,8 +33,7 @@ def mention_html(user_id, name):
     'examples': "{tr}join UserGeOt"})
 async def join_chat(message: Message):
     """ Join chat """
-    replied = message.reply_to_message
-    if replied:
+    if replied := message.reply_to_message:
         text = replied.text
     else:
         text = message.input_str
@@ -77,8 +77,8 @@ async def invite_link(message: Message):
     user_id = message.input_str
     if not user_id and message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
-    if not user_id:
-        try:
+    try:
+        if not user_id:
             chat = await userge.get_chat(chat_id)
             chat_name = chat.title
             if chat.type in ['group', 'supergroup']:
@@ -89,14 +89,11 @@ async def invite_link(message: Message):
                     disable_web_page_preview=True)
             else:
                 await message.err("Requirements doesn't met...")
-        except Exception as e_f:
-            await message.err(e_f)
-    else:
-        try:
+        else:
             await userge.add_chat_members(chat_id, user_id)
             await message.edit("`Invited Successfully...`")
-        except Exception as e_f:
-            await message.err(e_f)
+    except Exception as e_f:
+        await message.err(e_f)
 
 
 @userge.on_cmd("tagall", about={
@@ -121,12 +118,9 @@ async def tagall_(message: Message):
                 u_id = members.user.id
                 u_name = members.user.username or None
                 f_name = (await message.client.get_user_dict(u_id))['fname']
-                if u_name:
-                    text += f"@{u_name} "
-                else:
-                    text += f"[{f_name}](tg://user?id={u_id}) "
+                text += f"@{u_name} " if u_name else f"[{f_name}](tg://user?id={u_id}) "
     except Exception as e:
-        text += " " + str(e)
+        text += f" {str(e)}"
     await message.client.send_message(c_id, text, reply_to_message_id=message_id)
     await message.edit("```Tagged recent Members Successfully...```", del_in=3)
 
@@ -178,18 +172,10 @@ async def tadmins_(message: Message):
             u_id = members.user.id
             u_name = members.user.username or None
             f_name = (await message.client.get_user_dict(u_id))['fname']
-            if status == "administrator":
-                if u_name:
-                    text += f"@{u_name} "
-                else:
-                    text += f"[{f_name}](tg://user?id={u_id}) "
-            elif status == "creator":
-                if u_name:
-                    text += f"@{u_name} "
-                else:
-                    text += f"[{f_name}](tg://user?id={u_id}) "
+            if status in ["administrator", "creator"]:
+                text += f"@{u_name} " if u_name else f"[{f_name}](tg://user?id={u_id}) "
     except Exception as e:
-        text += " " + str(e)
+        text += f" {str(e)}"
     await message.client.send_message(c_id, text, reply_to_message_id=message_id)
     await message.edit("```Admins tagged Successfully...```", del_in=3)
 
@@ -211,12 +197,12 @@ async def set_chat(message: Message):
         return
     chat = await userge.get_chat(message.chat.id)
     if '-ddes' in message.flags:
-        if not chat.description:
-            await message.edit(
-                "```Chat already haven't any description...```", del_in=5)
-        else:
+        if chat.description:
             await userge.set_chat_description(message.chat.id, "")
             await message.edit("```Chat Description is Successfully removed...```", del_in=3)
+        else:
+            await message.edit(
+                "```Chat already haven't any description...```", del_in=5)
     args = message.filtered_input_str
     if not args:
         await message.edit("```Need Text to Update chat info...```", del_in=5)
@@ -268,26 +254,25 @@ async def view_chat(message: Message):
     if '-title' in message.flags:
         await message.edit("```Checking, wait plox !...```", del_in=3)
         title = chat.title
-        await message.edit("<code>{}</code>".format(title), parse_mode='html')
+        await message.edit(f"<code>{title}</code>", parse_mode='html')
     elif '-uname' in message.flags:
-        if not chat.username:
-            await message.err("```I think its private chat !...( ･ิω･ิ)```", del_in=3)
-        else:
+        if chat.username:
             await message.edit("```Checking, wait plox !...```", del_in=3)
             uname = chat.username
-            await message.edit("<code>{}</code>".format(uname), parse_mode='html')
+            await message.edit(f"<code>{uname}</code>", parse_mode='html')
+        else:
+            await message.err("```I think its private chat !...( ･ิω･ิ)```", del_in=3)
     elif '-des' in message.flags:
         if not chat.description:
             await message.err("```I think, Chat haven't any description...```", del_in=3)
         else:
             await message.edit("```checking, Wait plox !...```", del_in=3)
-            await message.edit("<code>{}</code>".format(chat.description), parse_mode='html')
+            await message.edit(f"<code>{chat.description}</code>", parse_mode='html')
+    elif not chat.photo:
+        await message.err("```Chat haven't any photo... ```", del_in=3)
     else:
-        if not chat.photo:
-            await message.err("```Chat haven't any photo... ```", del_in=3)
-        else:
-            await message.edit("```Checking chat photo, wait plox !...```", del_in=3)
-            await message.client.download_media(chat.photo.big_file_id, file_name=PATH)
-            await message.client.send_photo(message.chat.id, PATH)
-            if os.path.exists(PATH):
-                os.remove(PATH)
+        await message.edit("```Checking chat photo, wait plox !...```", del_in=3)
+        await message.client.download_media(chat.photo.big_file_id, file_name=PATH)
+        await message.client.send_photo(message.chat.id, PATH)
+        if os.path.exists(PATH):
+            os.remove(PATH)

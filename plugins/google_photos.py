@@ -143,7 +143,7 @@ async def upload_google_photos(message: Message):
             "X-Goog-Upload-File-Name": file_name,
             "X-Goog-Upload-Protocol": "resumable",
             "X-Goog-Upload-Raw-Size": str(file_size),
-            "Authorization": "Bearer " + creds.access_token,
+            "Authorization": f"Bearer {creds.access_token}",
         }
         # Step 1: Initiating an upload session
         step_one_response = await session.post(f"{PHOTOS_BASE_URI}/v1/uploads", headers=headers)
@@ -170,16 +170,16 @@ async def upload_google_photos(message: Message):
                     "Content-Length": str(part_size),
                     "X-Goog-Upload-Command": "upload",
                     "X-Goog-Upload-Offset": str(offset),
-                    "Authorization": "Bearer " + creds.access_token,
+                    "Authorization": f"Bearer {creds.access_token}",
                 }
                 # LOG.info(i)
                 # LOG.info(headers)
                 response = await session.post(real_upload_url, headers=headers, data=current_chunk)
                 loop.create_task(progress(offset + part_size, file_size,
                                           message, "uploading(gphoto)🧐?"))
-                # LOG.info(response.headers)
-                # https://github.com/SpEcHiDe/UniBorg/commit/8267811b1248c00cd1e34041e2ae8c82b207970f
-                # await f_d.seek(upload_granularity)
+                            # LOG.info(response.headers)
+                            # https://github.com/SpEcHiDe/UniBorg/commit/8267811b1248c00cd1e34041e2ae8c82b207970f
+                            # await f_d.seek(upload_granularity)
             # await f_d.seek(upload_granularity)
             current_chunk = await f_d.read(upload_granularity)
             # https://t.me/c/1279877202/74
@@ -187,14 +187,16 @@ async def upload_google_photos(message: Message):
             headers = {
                 "Content-Length": str(len(current_chunk)),
                 "X-Goog-Upload-Command": "upload, finalize",
-                "X-Goog-Upload-Offset": str(number_of_req_s * upload_granularity),
-                "Authorization": "Bearer " + creds.access_token,
+                "X-Goog-Upload-Offset": str(
+                    number_of_req_s * upload_granularity
+                ),
+                "Authorization": f"Bearer {creds.access_token}",
             }
             # LOG.info(headers)
             response = await session.post(real_upload_url, headers=headers, data=current_chunk)
-            # LOG.info(response.headers)
+                    # LOG.info(response.headers)
         final_response_text = await response.text()
-        # LOG.info(final_response_text)
+            # LOG.info(final_response_text)
     await message.edit_text("uploaded to Google Photos, getting FILE URI 🤔🤔")
     response_create_album = service.mediaItems().batchCreate(
         body={

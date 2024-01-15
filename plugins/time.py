@@ -41,6 +41,7 @@ async def grabTime(message: Message):
     date = tzDateTime.strftime('%d-%m-%Y')
     militaryTime = tzDateTime.strftime('%H:%M')
     time = dt.strptime(militaryTime, "%H:%M").strftime("%I:%M %p")
-    await message.edit("It is currently " + time + " on " + date + " in " +
-                       tz.replace("_", " "))
+    await message.edit(
+        (f"It is currently {time} on {date} in " + tz.replace("_", " "))
+    )
     LOG.info("Time: Command Finished Successfully")

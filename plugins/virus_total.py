@@ -78,7 +78,7 @@ async def _scan_file(msg: Message):
         if report[i]['detected'] is True:
             viruslist.append(i)
             reasons.append('â¤ ' + report[i]['result'])
-    if len(viruslist) > 0:
+    if viruslist:
         names = ' , '.join(viruslist)
         reason = '\n'.join(reasons)
         await msg.edit(f"""
@@ -101,8 +101,7 @@ def scan_file(path: str) -> str:
     files = {
         'file': (path_name, open(path, 'rb'))
     }
-    response = requests.post(url, files=files, params=params)
-    return response
+    return requests.post(url, files=files, params=params)
 
 
 def get_report(sha1: str) -> str:
@@ -111,5 +110,4 @@ def get_report(sha1: str) -> str:
     params = {
         'apikey': API_KEY, 'resource': sha1, 'allinfo': 'False'
     }
-    response = requests.get(url, params=params)
-    return response
+    return requests.get(url, params=params)

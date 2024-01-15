@@ -120,10 +120,7 @@ async def gdtot(message: Message):
         return await message.err("read .help gdtot")
     client = requests.Session()
     client.cookies.update({'crypt': CRYPT})
-    args = message.input_str
-    if not args:
-        await message.err("Send a link along with command")
-    else:
+    if args := message.input_str:
         try:
             await message.edit("Parsing...")
             res = await pool.run_in_thread(client.get)(args)
@@ -146,6 +143,9 @@ async def gdtot(message: Message):
         except Exception:
             await message.err("Unable To parse Link")
 
+    else:
+        await message.err("Send a link along with command")
+
 
 @userge.on_cmd("appdrive", about={
     'header': "parse appdrive links",
@@ -153,12 +153,9 @@ async def gdtot(message: Message):
                    "<a href='https://t.me/UnofficialPluginsHelp/129'>Help</a>",
     'usage': "{tr}appdrive appdrive_link"})
 async def appdrive(message: Message):
-    if not (APPDRIVE_EMAIL or APPDRIVE_PASS):
+    if not APPDRIVE_EMAIL and not APPDRIVE_PASS:
         return await message.err("read .help appdrive")
-    url = message.input_str
-    if not url:
-        await message.err("Send a link along with command")
-    else:
+    if url := message.input_str:
         await message.edit("Parsing.....")
         res = await appdrive_dl(url)
         if res.get('error') and res.get('error_message'):
@@ -172,3 +169,6 @@ async def appdrive(message: Message):
                 f'{res.get("gdrive_link", "Something Went Wrong")}'
             )
             await message.edit(output, disable_web_page_preview=True)
+
+    else:
+        await message.err("Send a link along with command")

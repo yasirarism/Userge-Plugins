@@ -24,11 +24,11 @@ async def creator(m: Message):
         await m.err("Invalid flag!")
         return
 
-    c_str = ""
     g_str = ""
     c_n = 0
     g_n = 0
 
+    c_str = ""
     async for d in m.client.iter_dialogs():
         if d.chat.type in ["group", "supergroup", "channel"]:
             try:
@@ -37,19 +37,13 @@ async def creator(m: Message):
                 ).status == status:
                     if d.chat.username:
                         c = (
-                            f"[{d.chat.title}](https://t.me/{d.chat.username})\n"
-                            + "  "
-                            + "**Privacy**: __public__"
-                            + " | "
+                            f"[{d.chat.title}](https://t.me/{d.chat.username})\n  **Privacy**: __public__ | "
                             + f"**Chat ID**: `{d.chat.id}`"
                         )
                     else:
                         i_l = (await m.client.get_chat(d.chat.id)).invite_link
                         c = (
-                            f"[{d.chat.title}]({i_l})\n"
-                            + "  "
-                            + "**Privacy**: __private__"
-                            + " | "
+                            f"[{d.chat.title}]({i_l})\n  **Privacy**: __private__ | "
                             + f"**Chat ID**: `{d.chat.id}`"
                         )
                     if d.chat.type == "channel":

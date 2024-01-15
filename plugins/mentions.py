@@ -22,10 +22,7 @@ async def _init():
 async def toggle_mentions(msg: Message):
     """ toggle mentions """
     global TOGGLE  # pylint: disable=global-statement
-    if TOGGLE:
-        TOGGLE = False
-    else:
-        TOGGLE = True
+    TOGGLE = not TOGGLE
     await SAVED_SETTINGS.update_one(
         {"_id": "MENTION_TOGGLE"}, {"$set": {"data": TOGGLE}}, upsert=True
     )

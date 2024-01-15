@@ -99,10 +99,7 @@ async def deeza(message: Message):
     caption_str = f"`{title}` by `{artist}`"
     pathh, _ = await url_download(message, url)
     thumby, _ = await url_download(message, thumb)
-    if pathh.endswith("m4a"):
-        temp_name = f"{title}.mp3"
-    else:
-        temp_name = f"{title}.flac"
+    temp_name = f"{title}.mp3" if pathh.endswith("m4a") else f"{title}.flac"
     song_path = os.path.join(Config.DOWN_PATH, temp_name)
     os.rename(pathh, song_path)
     await message.reply_audio(
